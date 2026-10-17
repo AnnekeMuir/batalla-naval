@@ -1,92 +1,32 @@
 import { useState } from "react";
 import "./App.css";
-import Parser from "./Parser";
+import Game from "./components/Game.tsx";
+import PuzzleEditor from "./components/PuzzleEditor.tsx";
+
+type GameMode = "menu" | "game" | "editor";
 
 function App() {
-  const { rowCounts, colCounts, grid, setGrid, GRID_SIZE } = Parser();
-
-  function handleLeftClick(row: number, col: number): void {
-    setGrid((prevGrid) =>
-      prevGrid.map((currentRow, r) =>
-        currentRow.map((cell, c) =>
-          r === row && c === col && cell !== "blocked" && cell !== "ship"
-            ? cell === "filled"
-              ? "blank"
-              : "filled"
-            : cell,
-        ),
-      ),
-    );
-  }
-
-  function handleRightClick(row: number, col: number): void {
-    setGrid((prevGrid) =>
-      prevGrid.map((currentRow, r) =>
-        currentRow.map((cell, c) =>
-          r === row && c === col && cell !== "blocked" && cell !== "ship"
-            ? cell === "crossed"
-              ? "blank"
-              : "crossed"
-            : cell,
-        ),
-      ),
-    );
-  }
-
-  function submit(): void {
-    var finalRowCounts = Array(GRID_SIZE).fill(0);
-    var finalColCounts = Array(GRID_SIZE).fill(0);
-
-    grid.forEach((row, r) => {
-      row.forEach((cell, c) => {
-        if (cell === "filled") {
-          finalRowCounts[r]++;
-          finalColCounts[c]++;
-        }
-      });
-    });
-
-    // check against the original rowCounts and colCounts
-  }
+  const [mode, setMode] = useState<GameMode>("menu");
 
   return (
     <main className="app">
-      <h1>Battleships</h1>
-      <p>Click a cell to toggle it between black and white.</p>
+      {mode === "menu" ? (
+        <>
+          <h1>Battleships</h1>
+          <p>Choose what you want to do.</p>
 
-      <div className="table">
-        <div className="grid">
-          {grid.map((row, r) =>
-            row.map((cell, c) => (
-              <button
-                key={`${r}-${c}`}
-                className={`cell ${cell}`}
-                onClick={() => handleLeftClick(r, c)}
-                onContextMenu={(event) => {
-                  event.preventDefault();
-                  handleRightClick(r, c);
-                }}
-                aria-label={`Row ${r + 1}, column ${c + 1}`}
-              />
-            )),
-          )}
-        </div>
-        <div className="row-labels">
-          {rowCounts.map((count, r) => (
-            <div key={r}>{count}</div>
-          ))}
-        </div>
-        <div className="col-labels">
-          {colCounts.map((count, c) => (
-            <div key={c}>{count}</div>
-          ))}
-        </div>
-        <div className="empty"></div>
-      </div>
+          <button onClick={() => setMode("game")}>Play Game</button>
 
-      <button className="submit-button" onClick={submit}>
-        Submit
-      </button>
+          <button onClick={() => setMode("editor")}>Puzzle Editor</button>
+        </>
+      ) : (
+        <>
+          <button onClick={() => setMode("menu")}>Back to Menu</button>
+
+          {mode === "game" && <Game />}
+          {mode === "editor" && <PuzzleEditor />}
+        </>
+      )}
     </main>
   );
 }

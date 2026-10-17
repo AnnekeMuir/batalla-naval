@@ -1,4 +1,0 @@
-rowCounts: 3 1 0 4 2 2 1 2 2 3
-colCounts: 0 5 1 1 0 2 4 2 3 2
-shipCells: (2,2) (7,4) (4,9) (10,10)
-blockedCells: (1,9)
