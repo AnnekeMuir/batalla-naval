@@ -1,35 +1,94 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import "./App.css";
+import Parser from "./Parser";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { rowCounts, colCounts, grid, setGrid, GRID_SIZE } = Parser();
+
+  function handleLeftClick(row: number, col: number): void {
+    setGrid((prevGrid) =>
+      prevGrid.map((currentRow, r) =>
+        currentRow.map((cell, c) =>
+          r === row && c === col && cell !== "blocked" && cell !== "ship"
+            ? cell === "filled"
+              ? "blank"
+              : "filled"
+            : cell,
+        ),
+      ),
+    );
+  }
+
+  function handleRightClick(row: number, col: number): void {
+    setGrid((prevGrid) =>
+      prevGrid.map((currentRow, r) =>
+        currentRow.map((cell, c) =>
+          r === row && c === col && cell !== "blocked" && cell !== "ship"
+            ? cell === "crossed"
+              ? "blank"
+              : "crossed"
+            : cell,
+        ),
+      ),
+    );
+  }
+
+  function submit(): void {
+    var finalRowCounts = Array(GRID_SIZE).fill(0);
+    var finalColCounts = Array(GRID_SIZE).fill(0);
+
+    grid.forEach((row, r) => {
+      row.forEach((cell, c) => {
+        if (cell === "filled") {
+          finalRowCounts[r]++;
+          finalColCounts[c]++;
+        }
+      });
+    });
+
+    // check against the original rowCounts and colCounts
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <main className="app">
+      <h1>Battleships</h1>
+      <p>Click a cell to toggle it between black and white.</p>
+
+      <div className="table">
+        <div className="grid">
+          {grid.map((row, r) =>
+            row.map((cell, c) => (
+              <button
+                key={`${r}-${c}`}
+                className={`cell ${cell}`}
+                onClick={() => handleLeftClick(r, c)}
+                onContextMenu={(event) => {
+                  event.preventDefault();
+                  handleRightClick(r, c);
+                }}
+                aria-label={`Row ${r + 1}, column ${c + 1}`}
+              />
+            )),
+          )}
+        </div>
+        <div className="row-labels">
+          {rowCounts.map((count, r) => (
+            <div key={r}>{count}</div>
+          ))}
+        </div>
+        <div className="col-labels">
+          {colCounts.map((count, c) => (
+            <div key={c}>{count}</div>
+          ))}
+        </div>
+        <div className="empty"></div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+
+      <button className="submit-button" onClick={submit}>
+        Submit
+      </button>
+    </main>
+  );
 }
 
-export default App
+export default App;
