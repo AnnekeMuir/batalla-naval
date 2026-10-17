@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 type Coordinate = [number, number];
-type EditorCell = "blank" | "blocked" | "filled";
+type EditorCell = "blank" | "blocked" | "filled" | "visible";
 type EditorMode = "answer" | "visible" | "blocked";
 
 const GRID_SIZE = 10;
@@ -77,6 +77,11 @@ function PuzzleEditor() {
   }
 
   function exportPuzzle() {
+    if (visibleCells.flat().filter(Boolean).length === 0) {
+      alert("Don't forget to reveal some ships!");
+      return;
+    }
+
     const toCoordinates = (cells: boolean[][]): Coordinate[] => {
       const coordinates: Coordinate[] = [];
 
@@ -118,7 +123,7 @@ function PuzzleEditor() {
   }
 
   function getCellState(row: number, col: number): EditorCell {
-    if (visibleCells[row][col]) return "filled";
+    if (visibleCells[row][col]) return "visible";
     if (answerCells[row][col]) return "filled";
     if (blockedCells[row][col]) return "blocked";
     return "blank";

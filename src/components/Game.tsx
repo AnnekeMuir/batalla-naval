@@ -33,6 +33,42 @@ function parsePuzzle(text: string): Puzzle {
   };
 }
 
+type ShipShape =
+  | "single"
+  | "horizontal-left"
+  | "horizontal-middle"
+  | "horizontal-right"
+  | "vertical-top"
+  | "vertical-middle"
+  | "vertical-bottom";
+
+function getShipShape(
+  row: number,
+  col: number,
+  answerCells: [number, number][],
+): ShipShape {
+  const hasShip = (r: number, c: number) =>
+    answerCells.some(([sr, sc]) => sr === r && sc === c);
+
+  const above = hasShip(row - 1, col);
+  const below = hasShip(row + 1, col);
+  const left = hasShip(row, col - 1);
+  const right = hasShip(row, col + 1);
+
+  if (!above && !below && !left && !right) return "single";
+
+  if (left || right) {
+    if (!left && right) return "horizontal-left";
+    if (left && !right) return "horizontal-right";
+    return "horizontal-middle";
+  }
+
+  if (!above && below) return "vertical-top";
+  if (above && !below) return "vertical-bottom";
+
+  return "vertical-middle";
+}
+
 function Game() {
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null);
   const [grid, setGrid] = useState<CellState[][]>([]);
@@ -166,8 +202,6 @@ function Game() {
         />
       </label>
 
-      {message && <p>{message}</p>}
-
       {!puzzle ? (
         <p>Choose a puzzle.txt file to start playing.</p>
       ) : (
@@ -177,18 +211,25 @@ function Game() {
           <div className="table">
             <div className="grid">
               {grid.map((row, r) =>
-                row.map((cell, c) => (
-                  <button
-                    key={`${r}-${c}`}
-                    className={`cell ${cell}`}
-                    onClick={() => handleLeftClick(r, c)}
-                    onContextMenu={(event) => {
-                      event.preventDefault();
-                      handleRightClick(r, c);
-                    }}
-                    aria-label={`Row ${r + 1}, column ${c + 1}`}
-                  />
-                )),
+                row.map((cell, c) => {
+                  const shipShape =
+                    cell === "ship" && puzzle
+                      ? getShipShape(r, c, puzzle.answerCells)
+                      : "";
+
+                  return (
+                    <button
+                      key={`${r}-${c}`}
+                      className={`cell ${cell} ${shipShape}`}
+                      onClick={() => handleLeftClick(r, c)}
+                      onContextMenu={(event) => {
+                        event.preventDefault();
+                        handleRightClick(r, c);
+                      }}
+                      aria-label={`Row ${r + 1}, column ${c + 1}`}
+                    />
+                  );
+                }),
               )}
             </div>
 
@@ -210,6 +251,8 @@ function Game() {
           <button className="submit-button" onClick={submit}>
             Submit
           </button>
+
+          {message && <p>{message}</p>}
         </>
       )}
     </>

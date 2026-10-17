@@ -66,6 +66,12 @@
   background-color: #999;
 }
 
+
+.cell.visible {
+  border: 3px solid red;
+  background-color: black;
+}
+
 .row-labels {
   display: grid;
   grid-template-rows: repeat(10, 36px);
@@ -76,4 +82,29 @@
   display: grid;
   grid-template-columns: repeat(10, 36px);
   gap: 3px;
+}
+
+.cell.horizontal-left {
+  border-radius: 8px 0 0 8px;
+}
+
+.cell.horizontal-right {
+  border-radius: 0 8px 8px 0;
+}
+
+.cell.vertical-top {
+  border-radius: 8px 8px 0 0;
+}
+
+.cell.vertical-bottom {
+  border-radius: 0 0 8px 8px;
+}
+
+.cell.horizontal-middle,
+.cell.vertical-middle {
+  border-radius: 0;
+}
+
+.cell.single {
+  border-radius: 8px;
 }
