@@ -154,20 +154,6 @@ function Game() {
     setMessage("");
   }
 
-  function handleRightClick(row: number, col: number) {
-    setGrid((prev) =>
-      prev.map((currentRow, r) =>
-        currentRow.map((cell, c) => {
-          if (r !== row || c !== col || cell === "blocked" || cell === "ship") {
-            return cell;
-          }
-          return cell === "crossed" ? "blank" : "crossed";
-        }),
-      ),
-    );
-    setMessage("");
-  }
-
   const loadPuzzleText = (text: string) => {
     const parsedPuzzle = parsePuzzle(text);
 
