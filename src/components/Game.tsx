@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 type Coordinate = [number, number];
 type Puzzle = {
@@ -80,57 +80,7 @@ function Game() {
   const [grid, setGrid] = useState<CellState[][]>([]);
   const [message, setMessage] = useState("");
   const [isDragging, setIsDragging] = useState(false);
-
-  async function loadPuzzle(file: File) {
-    const text = await file.text();
-    const parsed = parsePuzzle(text);
-
-    const validCoordinates = [
-      ...parsed.shipCells,
-      ...parsed.answerCells,
-      ...parsed.blockedCells,
-    ].every(([r, c]) => r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE);
-
-    if (!validCoordinates) {
-      setMessage("Puzzle contains coordinates outside the grid.");
-      return;
-    }
-
-    const answerSet = new Set(parsed.answerCells.map(([r, c]) => `${r},${c}`));
-
-    const visibleIsValid = parsed.shipCells.every(([r, c]) =>
-      answerSet.has(`${r},${c}`),
-    );
-
-    const blockedSet = new Set(
-      parsed.blockedCells.map(([r, c]) => `${r},${c}`),
-    );
-
-    const overlapsBlocked = parsed.answerCells.some(([r, c]) =>
-      blockedSet.has(`${r},${c}`),
-    );
-
-    if (!visibleIsValid || overlapsBlocked) {
-      setMessage(
-        "Puzzle is invalid: revealed ships must be in the answer, and ships cannot overlap blocked cells.",
-      );
-      return;
-    }
-
-    setPuzzle(parsed);
-    setGrid(
-      Array.from({ length: GRID_SIZE }, (_, r) =>
-        Array.from({ length: GRID_SIZE }, (_, c) => {
-          if (blockedSet.has(`${r},${c}`)) return "blocked";
-          if (parsed.shipCells.some(([sr, sc]) => sr === r && sc === c)) {
-            return "ship";
-          }
-          return "blank";
-        }),
-      ),
-    );
-    setMessage("");
-  }
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const rowCounts = Array(GRID_SIZE).fill(0);
   const colCounts = Array(GRID_SIZE).fill(0);
@@ -155,25 +105,48 @@ function Game() {
   }
 
   const loadPuzzleText = (text: string) => {
-    const parsedPuzzle = parsePuzzle(text);
+    const parsed = parsePuzzle(text);
 
-    setPuzzle(parsedPuzzle);
+    const validCoordinates = [
+      ...parsed.shipCells,
+      ...parsed.answerCells,
+      ...parsed.blockedCells,
+    ].every(([r, c]) => r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE);
 
-    // Reset the player's grid for the newly loaded puzzle
+    if (!validCoordinates) {
+      setMessage("Puzzle contains coordinates outside the grid.");
+      return;
+    }
+
+    const answerSet = new Set(parsed.answerCells.map(([r, c]) => `${r},${c}`));
+
+    const blockedSet = new Set(
+      parsed.blockedCells.map(([r, c]) => `${r},${c}`),
+    );
+
+    const visibleIsValid = parsed.shipCells.every(([r, c]) =>
+      answerSet.has(`${r},${c}`),
+    );
+
+    const overlapsBlocked = parsed.answerCells.some(([r, c]) =>
+      blockedSet.has(`${r},${c}`),
+    );
+
+    if (!visibleIsValid || overlapsBlocked) {
+      setMessage(
+        "Invalid puzzle: revealed ships must be in the answer, and ships cannot overlap blocked cells.",
+      );
+      return;
+    }
+
+    setPuzzle(parsed);
+
     setGrid(
-      Array.from({ length: 10 }, (_, r) =>
-        Array.from({ length: 10 }, (_, c) => {
-          if (
-            parsedPuzzle.blockedCells.some(
-              ([row, col]) => row === r && col === c,
-            )
-          ) {
-            return "blocked";
-          }
+      Array.from({ length: GRID_SIZE }, (_, r) =>
+        Array.from({ length: GRID_SIZE }, (_, c) => {
+          if (blockedSet.has(`${r},${c}`)) return "blocked";
 
-          if (
-            parsedPuzzle.shipCells.some(([row, col]) => row === r && col === c)
-          ) {
+          if (parsed.shipCells.some(([sr, sc]) => sr === r && sc === c)) {
             return "ship";
           }
 
@@ -181,6 +154,8 @@ function Game() {
         }),
       ),
     );
+
+    setMessage("");
   };
 
   const loadRandomPuzzle = () => {
@@ -240,17 +215,15 @@ function Game() {
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
-
     if (!file) return;
 
     try {
       const text = await file.text();
       loadPuzzleText(text);
     } catch {
-      alert("Unable to read the puzzle file.");
+      setMessage("Unable to read the puzzle file.");
     }
 
-    // Allow the same file to be selected again
     event.target.value = "";
   };
 
@@ -258,30 +231,24 @@ function Game() {
     <>
       <h1>Play Battleships</h1>
 
-      <label>
-        Load puzzle file:{" "}
-        <input
-          type="file"
-          accept=".txt,text/plain"
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            if (file) void loadPuzzle(file);
-          }}
-        />
-      </label>
-
       <div className="puzzle-controls">
         <button onClick={loadRandomPuzzle}>Random Puzzle</button>
 
-        <label className="upload-button">
+        <button
+          type="button"
+          className="upload-button"
+          onClick={() => fileInputRef.current?.click()}
+        >
           Upload Puzzle
-          <input
-            type="file"
-            accept=".txt,text/plain"
-            onChange={handlePuzzleUpload}
-            hidden
-          />
-        </label>
+        </button>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".txt,text/plain"
+          onChange={handlePuzzleUpload}
+          hidden
+        />
       </div>
 
       {!puzzle ? (
