@@ -55,8 +55,26 @@
   background-color: white;
 }
 
-.cell.filled, .cell.ship {
+.cell.filled {
   background-color: black;
+}
+
+.cell.ship {
+  position: relative;
+  background-color: black;
+}
+
+.cell.ship::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 4px;
+  background-color: white;
+  border-radius: 50%;
+  pointer-events: none;
 }
 
 .cell.crossed {
@@ -66,7 +84,6 @@
 .cell.blocked {
   background-color: #999;
 }
-
 
 .cell.visible {
   border: 3px solid red;
