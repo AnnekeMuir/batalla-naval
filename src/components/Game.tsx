@@ -73,6 +73,7 @@ function Game() {
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null);
   const [grid, setGrid] = useState<CellState[][]>([]);
   const [message, setMessage] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
 
   async function loadPuzzle(file: File) {
     const text = await file.text();
@@ -161,6 +162,23 @@ function Game() {
     setMessage("");
   }
 
+  function crossOutCell(row: number, col: number) {
+    setGrid((prevGrid) =>
+      prevGrid.map((currentRow, r) =>
+        currentRow.map((cell, c) => {
+          if (r !== row || c !== col) return cell;
+
+          // Don't change blocked cells or revealed ships
+          if (cell === "blocked" || cell === "ship") return cell;
+
+          // Toggle between crossed out and blank
+          if (cell === "crossed") return "blank";
+
+          return "crossed";
+        }),
+      ),
+    );
+  }
   function submit() {
     if (!puzzle) return;
 
@@ -208,8 +226,12 @@ function Game() {
         <>
           <p>Left-click to fill a cell. Right-click to cross it out.</p>
 
-          <div className="table">
-            <div className="grid">
+          <div className="table" onContextMenu={(e) => e.preventDefault()}>
+            <div
+              className="grid"
+              onMouseUp={() => setIsDragging(false)}
+              onMouseLeave={() => setIsDragging(false)}
+            >
               {grid.map((row, r) =>
                 row.map((cell, c) => {
                   const shipShape =
@@ -221,10 +243,24 @@ function Game() {
                     <button
                       key={`${r}-${c}`}
                       className={`cell ${cell} ${shipShape}`}
-                      onClick={() => handleLeftClick(r, c)}
+                      onClick={() => {
+                        if (!isDragging) {
+                          handleLeftClick(r, c);
+                        }
+                      }}
+                      onMouseDown={(event) => {
+                        if (event.button === 2) {
+                          setIsDragging(true);
+                          crossOutCell(r, c);
+                        }
+                      }}
+                      onMouseEnter={() => {
+                        if (isDragging) {
+                          crossOutCell(r, c);
+                        }
+                      }}
                       onContextMenu={(event) => {
                         event.preventDefault();
-                        handleRightClick(r, c);
                       }}
                       aria-label={`Row ${r + 1}, column ${c + 1}`}
                     />
