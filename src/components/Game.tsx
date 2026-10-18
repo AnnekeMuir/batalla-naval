@@ -227,6 +227,26 @@ function Game() {
     event.target.value = "";
   };
 
+  const resetPuzzle = () => {
+    setGrid(
+      Array.from({ length: GRID_SIZE }, (_, row) =>
+        Array.from({ length: GRID_SIZE }, (_, col) => {
+          if (puzzle?.blockedCells.some(([r, c]) => r === row && c === col)) {
+            return "blocked";
+          }
+
+          if (puzzle?.shipCells.some(([r, c]) => r === row && c === col)) {
+            return "ship";
+          }
+
+          return "blank";
+        }),
+      ),
+    );
+
+    setMessage("");
+  };
+
   return (
     <>
       <h1>Battleships</h1>
@@ -338,6 +358,10 @@ function Game() {
 
             <div className="empty" />
           </div>
+
+          <button type="button" className="reset-button" onClick={resetPuzzle}>
+            Reset Puzzle
+          </button>
 
           <button className="submit-button" onClick={submit}>
             Submit
