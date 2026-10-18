@@ -1,67 +1,168 @@
 
+/* ---------- Global layout ---------- */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f3f6fb;
+  color: #1e293b;
+  font-family: Arial, sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+}
+
 .app {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: 32px;
+  gap: 20px;
+  min-height: 100vh;
+  padding: 40px 20px;
   font-family: Arial, sans-serif;
 }
 
-.app h1,
+.app h1 {
+  margin: 0;
+  color: #17365d;
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-weight: 750;
+  letter-spacing: -0.7px;
+}
+
 .app p {
   margin: 0;
+  line-height: 1.6;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(10, 36px);
-  gap: 3px;
-}
+/* ---------- General buttons ---------- */
 
-.cell {
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  background-color: white;
-  border: 1px solid #999;
-  border-radius: 0;
+button,
+.upload-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #24364b;
+  font-weight: 600;
   cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
 }
 
-.cell.filled {
-  background-color: black;
+button:hover,
+.upload-button:hover {
+  background: #edf3fa;
+  border-color: #94a3b8;
 }
 
-.reset-button {
-  padding: 8px 16px;
-  cursor: pointer;
+button:active,
+.upload-button:active {
+  transform: translateY(1px);
+}
+
+button:focus-visible,
+.upload-button:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 3px;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Puzzle controls */
+
+.puzzle-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.reset-button,
+.submit-button {
+  min-width: 110px;
 }
 
 .submit-button {
-  padding: 8px 16px;
-  cursor: pointer;
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #ffffff;
 }
+
+.submit-button:hover {
+  background: #1e40af;
+  border-color: #1e40af;
+}
+
+/* ---------- Puzzle layout ---------- */
 
 .table {
   display: grid;
   grid-template-columns: auto auto;
   grid-template-rows: auto auto;
-  gap: 3px;
-  padding: 10px 60px 30px 60px;
+  gap: 5px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 8px 28px rgb(15 23 42 / 6%);
 }
 
+/* ---------- Grid ---------- */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(10, 36px);
+  gap: 3px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cell {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  background: #ffffff;
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease;
+}
+
+/* Empty squares */
+
 .cell.blank {
-  background-color: white;
+  background: white;
 }
 
 .cell.filled {
-  background-color: black;
+  background: black;
 }
 
 .cell.ship {
   position: relative;
-  background-color: black;
+  background: black;
+  border-color: #999;
+  cursor: default;
 }
 
 .cell.ship::after {
@@ -78,17 +179,48 @@
 }
 
 .cell.crossed {
-  background-color: lightblue;
+  background: lightblue;
+  border-color: #999;
 }
 
 .cell.blocked {
-  background-color: #999;
+  background: #999;
+  border-color: #999;
 }
 
 .cell.visible {
   border: 3px solid red;
-  background-color: black;
+  background: black;
 }
+
+/* ---------- Ship shapes ---------- */
+
+.cell.horizontal-left {
+  border-radius: 18px 3px 3px 18px;
+}
+
+.cell.horizontal-right {
+  border-radius: 3px 18px 18px 3px;
+}
+
+.cell.vertical-top {
+  border-radius: 18px 18px 3px 3px;
+}
+
+.cell.vertical-bottom {
+  border-radius: 3px 3px 18px 18px;
+}
+
+.cell.horizontal-middle,
+.cell.vertical-middle {
+  border-radius: 3px;
+}
+
+.cell.single {
+  border-radius: 50%;
+}
+
+/* ---------- Row and column clues ---------- */
 
 .row-labels {
   display: grid;
@@ -102,54 +234,51 @@
   gap: 3px;
 }
 
-.cell.horizontal-left {
-  border-radius: 20px 0 0 20px;
+.row-labels > *,
+.col-labels > * {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
 }
 
-.cell.horizontal-right {
-  border-radius: 0 20px 20px 0;
-}
-
-.cell.vertical-top {
-  border-radius: 20px 20px 0 0;
-}
-
-.cell.vertical-bottom {
-  border-radius: 0 0 20px 20px;
-}
-
-.cell.horizontal-middle,
-.cell.vertical-middle {
-  border-radius: 0;
-}
-
-.cell.single {
-  border-radius: 20px;
-}
-
+/* ---------- How to Play dropdown ---------- */
 
 .how-to-play {
-  margin: 16px 0;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  width: min(100%, 460px);
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #dbe3ed;
+  border-radius: 10px;
+  background: #ffffff;
   text-align: left;
-  background: white;
+  box-shadow: 0 2px 8px rgb(15 23 42 / 3%);
 }
 
 .how-to-play summary {
-  padding: 12px 16px;
+  padding: 14px 16px;
+  color: #17365d;
+  font-weight: 700;
   cursor: pointer;
-  font-weight: 600;
   list-style-position: inside;
+  transition: background-color 0.18s ease;
 }
 
 .how-to-play summary:hover {
-  background: #f3f4f6;
+  background: #f1f5f9;
 }
 
 .how-to-play-content {
-  padding: 0 16px 12px;
-  line-height: 1.6;
+  padding: 0 18px 14px;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.how-to-play-content p {
+  margin: 8px 0;
 }
 
 .how-to-play-content ul {
@@ -157,5 +286,62 @@
 }
 
 .how-to-play-content li {
-  margin-bottom: 8px;
+  margin-bottom: 7px;
+}
+
+.how-to-play-content strong {
+  color: #1e293b;
+}
+
+/* ---------- Responsive layout ---------- */
+
+@media (max-width: 480px) {
+  .app {
+    gap: 16px;
+    padding: 24px 10px;
+  }
+
+  .table {
+    gap: 3px;
+    padding: 10px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(10, min(7.5vw, 36px));
+    gap: 2px;
+  }
+
+  .cell {
+    width: min(7.5vw, 36px);
+    height: min(7.5vw, 36px);
+  }
+
+  .row-labels {
+    grid-template-rows: repeat(10, min(7.5vw, 36px));
+    gap: 2px;
+  }
+
+  .col-labels {
+    grid-template-columns: repeat(10, min(7.5vw, 36px));
+    gap: 2px;
+  }
+
+  .puzzle-controls {
+    gap: 8px;
+  }
+
+  .puzzle-controls button,
+  .puzzle-controls .upload-button {
+    padding: 10px 12px;
+  }
+}
+
+/* Respect reduced-motion preferences */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
 }
