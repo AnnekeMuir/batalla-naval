@@ -7,6 +7,12 @@ type Puzzle = {
   blockedCells: Coordinate[];
 };
 
+const puzzleFiles = import.meta.glob("../puzzles/*.txt", {
+  eager: true,
+  query: "?raw",
+  import: "default",
+}) as Record<string, string>;
+
 type CellState = "blank" | "crossed" | "filled" | "blocked" | "ship";
 
 const GRID_SIZE = 10;
@@ -162,6 +168,46 @@ function Game() {
     setMessage("");
   }
 
+  const loadPuzzleText = (text: string) => {
+    const parsedPuzzle = parsePuzzle(text);
+
+    setPuzzle(parsedPuzzle);
+
+    // Reset the player's grid for the newly loaded puzzle
+    setGrid(
+      Array.from({ length: 10 }, (_, r) =>
+        Array.from({ length: 10 }, (_, c) => {
+          if (
+            parsedPuzzle.blockedCells.some(
+              ([row, col]) => row === r && col === c,
+            )
+          ) {
+            return "blocked";
+          }
+
+          if (
+            parsedPuzzle.shipCells.some(([row, col]) => row === r && col === c)
+          ) {
+            return "ship";
+          }
+
+          return "blank";
+        }),
+      ),
+    );
+  };
+
+  const loadRandomPuzzle = () => {
+    const files = Object.values(puzzleFiles);
+    if (files.length === 0) {
+      alert("No preset puzzles found.");
+      return;
+    }
+
+    const randomIndex = Math.floor(Math.random() * files.length);
+    loadPuzzleText(files[randomIndex]);
+  };
+
   function crossOutCell(row: number, col: number) {
     setGrid((prevGrid) =>
       prevGrid.map((currentRow, r) =>
@@ -204,6 +250,24 @@ function Game() {
     );
   }
 
+  const handlePuzzleUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      loadPuzzleText(text);
+    } catch {
+      alert("Unable to read the puzzle file.");
+    }
+
+    // Allow the same file to be selected again
+    event.target.value = "";
+  };
+
   return (
     <>
       <h1>Play Battleships</h1>
@@ -219,6 +283,20 @@ function Game() {
           }}
         />
       </label>
+
+      <div className="puzzle-controls">
+        <button onClick={loadRandomPuzzle}>Random Puzzle</button>
+
+        <label className="upload-button">
+          Upload Puzzle
+          <input
+            type="file"
+            accept=".txt,text/plain"
+            onChange={handlePuzzleUpload}
+            hidden
+          />
+        </label>
+      </div>
 
       {!puzzle ? (
         <p>Choose a puzzle.txt file to start playing.</p>
