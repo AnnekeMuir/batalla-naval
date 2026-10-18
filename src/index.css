@@ -126,3 +126,36 @@
 .cell.single {
   border-radius: 20px;
 }
+
+
+.how-to-play {
+  margin: 16px 0;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  text-align: left;
+  background: white;
+}
+
+.how-to-play summary {
+  padding: 12px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  list-style-position: inside;
+}
+
+.how-to-play summary:hover {
+  background: #f3f4f6;
+}
+
+.how-to-play-content {
+  padding: 0 16px 12px;
+  line-height: 1.6;
+}
+
+.how-to-play-content ul {
+  padding-left: 20px;
+}
+
+.how-to-play-content li {
+  margin-bottom: 8px;
+}

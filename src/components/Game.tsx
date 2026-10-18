@@ -229,7 +229,32 @@ function Game() {
 
   return (
     <>
-      <h1>Play Battleships</h1>
+      <h1>Battleships</h1>
+
+      <details className="how-to-play">
+        <summary>How to Play</summary>
+
+        <div className="how-to-play-content">
+          <p>
+            Fill in the grid to find all the hidden ships. The numbers along the
+            sides and top of the grid show how many ship squares belong in each
+            row and column.
+          </p>
+
+          <p>
+            <strong>The fleet consists of 10 ships:</strong>
+          </p>
+          <ul>
+            <li>1 ship that is 4 squares long: ⬛⬛⬛⬛</li>
+            <li>2 ships that are 3 squares long: ⬛⬛⬛, ⬛⬛⬛</li>
+            <li>3 ships that are 2 squares long: ⬛⬛, ⬛⬛, ⬛⬛</li>
+            <li>4 ships that are 1 square long: ⬛, ⬛, ⬛, ⬛</li>
+          </ul>
+          <p>
+            <strong>Ships cannot touch each other including diagonally.</strong>
+          </p>
+        </div>
+      </details>
 
       <div className="puzzle-controls">
         <button onClick={loadRandomPuzzle}>Random Puzzle</button>
@@ -250,7 +275,6 @@ function Game() {
           hidden
         />
       </div>
-
       {!puzzle ? (
         <p>Choose a puzzle.txt file to start playing.</p>
       ) : (
