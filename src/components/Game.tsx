@@ -81,6 +81,7 @@ function Game() {
   const [message, setMessage] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [inputMode, setInputMode] = useState<"ship" | "cross">("ship");
 
   const rowCounts = Array(GRID_SIZE).fill(0);
   const colCounts = Array(GRID_SIZE).fill(0);
@@ -319,7 +320,9 @@ function Game() {
                       key={`${r}-${c}`}
                       className={`cell ${cell} ${shipShape}`}
                       onClick={() => {
-                        if (!isDragging) {
+                        if (inputMode === "cross") {
+                          crossOutCell(r, c);
+                        } else {
                           handleLeftClick(r, c);
                         }
                       }}
@@ -357,6 +360,28 @@ function Game() {
             </div>
 
             <div className="empty" />
+          </div>
+
+          <div className="input-modes">
+            <button
+              type="button"
+              className={
+                inputMode === "ship" ? "mode-button active" : "mode-button"
+              }
+              onClick={() => setInputMode("ship")}
+            >
+              Place Ship
+            </button>
+
+            <button
+              type="button"
+              className={
+                inputMode === "cross" ? "mode-button active" : "mode-button"
+              }
+              onClick={() => setInputMode("cross")}
+            >
+              Cross Out
+            </button>
           </div>
 
           <button type="button" className="reset-button" onClick={resetPuzzle}>

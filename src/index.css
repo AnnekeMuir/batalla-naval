@@ -345,3 +345,34 @@ button:disabled {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Hide mode buttons by default (desktop) */
+.input-modes {
+  display: none;
+}
+
+/* Show mode buttons on mobile */
+@media (max-width: 600px) {
+  .input-modes {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+  }
+}
+
+.mode-button {
+  min-width: 120px;
+  background: white;
+  border: 1px solid #cbd5e1;
+}
+
+.mode-button.active {
+  background: #17365d;
+  color: white;
+  border-color: #17365d;
+}
+
+.mode-button.active:hover {
+  background: #244a76;
+}
