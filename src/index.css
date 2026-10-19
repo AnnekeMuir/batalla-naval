@@ -132,6 +132,9 @@ button:disabled {
   gap: 3px;
   user-select: none;
   -webkit-user-select: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .cell {
@@ -146,6 +149,8 @@ button:disabled {
   transition:
     background-color 0.12s ease,
     border-color 0.12s ease;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Empty squares */
