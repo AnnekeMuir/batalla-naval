@@ -351,6 +351,14 @@ button:disabled {
   display: none;
 }
 
+.desktop-instructions {
+  display: block;
+}
+
+.mobile-instructions {
+  display: none;
+}
+
 /* Show mode buttons on mobile */
 @media (max-width: 600px) {
   .input-modes {
@@ -358,6 +366,14 @@ button:disabled {
     justify-content: center;
     gap: 8px;
     width: 100%;
+  }
+
+  .mobile-instructions {
+    display: block;
+  }
+
+  .desktop-instructions {
+    display: none;
   }
 }
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 type Coordinate = [number, number];
+
 type Puzzle = {
   shipCells: Coordinate[];
   answerCells: Coordinate[];
@@ -14,6 +15,7 @@ const puzzleFiles = import.meta.glob("../puzzles/*.txt", {
 }) as Record<string, string>;
 
 type CellState = "blank" | "crossed" | "filled" | "blocked" | "ship";
+type InputMode = "ship" | "cross";
 
 const GRID_SIZE = 10;
 
@@ -51,7 +53,7 @@ type ShipShape =
 function getShipShape(
   row: number,
   col: number,
-  answerCells: [number, number][],
+  answerCells: Coordinate[],
 ): ShipShape {
   const hasShip = (r: number, c: number) =>
     answerCells.some(([sr, sc]) => sr === r && sc === c);
@@ -79,9 +81,16 @@ function Game() {
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null);
   const [grid, setGrid] = useState<CellState[][]>([]);
   const [message, setMessage] = useState("");
-  const [isDragging, setIsDragging] = useState(false);
+  const [inputMode, setInputMode] = useState<InputMode>("ship");
+
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [inputMode, setInputMode] = useState<"ship" | "cross">("ship");
+
+  // Refs keep drag information up to date immediately, without waiting
+  // for React to re-render.
+  const isDraggingRef = useRef(false);
+  const dragModeRef = useRef<InputMode | null>(null);
+  const lastDraggedCell = useRef<string | null>(null);
+  const dragButtonRef = useRef<number | null>(null);
 
   const rowCounts = Array(GRID_SIZE).fill(0);
   const colCounts = Array(GRID_SIZE).fill(0);
@@ -98,12 +107,67 @@ function Game() {
           if (r !== row || c !== col || cell === "blocked" || cell === "ship") {
             return cell;
           }
+
           return cell === "filled" ? "blank" : "filled";
         }),
       ),
     );
+
     setMessage("");
   }
+
+  function crossOutCell(row: number, col: number) {
+    setGrid((prevGrid) =>
+      prevGrid.map((currentRow, r) =>
+        currentRow.map((cell, c) => {
+          if (r !== row || c !== col) return cell;
+
+          if (cell === "blocked" || cell === "ship") return cell;
+
+          return cell === "crossed" ? "blank" : "crossed";
+        }),
+      ),
+    );
+
+    setMessage("");
+  }
+
+  // Mark a cell according to the mode selected at the start of the drag.
+  function markCell(row: number, col: number) {
+    const mode = dragModeRef.current;
+    const cellKey = `${row}-${col}`;
+
+    if (!mode || lastDraggedCell.current === cellKey) return;
+
+    lastDraggedCell.current = cellKey;
+
+    if (mode === "cross") {
+      crossOutCell(row, col);
+    } else {
+      handleLeftClick(row, col);
+    }
+  }
+
+  function stopDragging() {
+    isDraggingRef.current = false;
+    dragModeRef.current = null;
+    lastDraggedCell.current = null;
+    dragButtonRef.current = null;
+  }
+
+  // Stop dragging even if the user releases their finger or mouse
+  // outside the grid.
+  useEffect(() => {
+    window.addEventListener("pointerup", stopDragging);
+    window.addEventListener("pointercancel", stopDragging);
+    window.addEventListener("blur", stopDragging);
+
+    return () => {
+      window.removeEventListener("pointerup", stopDragging);
+      window.removeEventListener("pointercancel", stopDragging);
+      window.removeEventListener("blur", stopDragging);
+    };
+  }, []);
 
   const loadPuzzleText = (text: string) => {
     const parsed = parsePuzzle(text);
@@ -140,6 +204,7 @@ function Game() {
       return;
     }
 
+    stopDragging();
     setPuzzle(parsed);
 
     setGrid(
@@ -197,29 +262,11 @@ function Game() {
     }
   };
 
-  function crossOutCell(row: number, col: number) {
-    setGrid((prevGrid) =>
-      prevGrid.map((currentRow, r) =>
-        currentRow.map((cell, c) => {
-          if (r !== row || c !== col) return cell;
-
-          // Don't change blocked cells or revealed ships
-          if (cell === "blocked" || cell === "ship") return cell;
-
-          // Toggle between crossed out and blank
-          if (cell === "crossed") return "blank";
-
-          return "crossed";
-        }),
-      ),
-    );
-  }
   function submit() {
     if (!puzzle) return;
 
     const playerSet = new Set<string>();
 
-    // Include the ships already revealed to the player.
     grid.forEach((row, r) =>
       row.forEach((cell, c) => {
         if (cell === "ship" || cell === "filled") {
@@ -256,20 +303,22 @@ function Game() {
   };
 
   const resetPuzzle = () => {
-    const isConfirmed: boolean = window.confirm(
+    const isConfirmed = window.confirm(
       "Are you sure you want to reset? This will clear all your progress.",
     );
 
-    if (!isConfirmed) return;
+    if (!isConfirmed || !puzzle) return;
+
+    stopDragging();
 
     setGrid(
       Array.from({ length: GRID_SIZE }, (_, row) =>
         Array.from({ length: GRID_SIZE }, (_, col) => {
-          if (puzzle?.blockedCells.some(([r, c]) => r === row && c === col)) {
+          if (puzzle.blockedCells.some(([r, c]) => r === row && c === col)) {
             return "blocked";
           }
 
-          if (puzzle?.shipCells.some(([r, c]) => r === row && c === col)) {
+          if (puzzle.shipCells.some(([r, c]) => r === row && c === col)) {
             return "ship";
           }
 
@@ -304,8 +353,11 @@ function Game() {
             <li>3 ships that are 2 squares long: ⬛⬛, ⬛⬛, ⬛⬛</li>
             <li>4 ships that are 1 square long: ⬛, ⬛, ⬛, ⬛</li>
           </ul>
+
           <p>
-            <strong>Ships cannot touch each other including diagonally.</strong>
+            <strong>
+              Ships cannot touch each other, including diagonally.
+            </strong>
           </p>
         </div>
       </details>
@@ -329,50 +381,76 @@ function Game() {
           hidden
         />
       </div>
+
       {!puzzle ? (
-        <p>Choose a puzzle.txt file to start playing.</p>
+        <p>Choose a puzzle file or select Random Puzzle to start playing.</p>
       ) : (
         <>
-          <p>Left-click to fill a cell. Right-click to cross it out.</p>
+          <p className="desktop-instructions">
+            Left-click to place ships, or right-click and drag to mark empty.
+          </p>
+
+          <p className="mobile-instructions">
+            Tap and drag to place ships or mark as empty. Use the buttons below
+            to switch between modes.
+          </p>
 
           <div className="table" onContextMenu={(e) => e.preventDefault()}>
-            <div
-              className="grid"
-              onMouseUp={() => setIsDragging(false)}
-              onMouseLeave={() => setIsDragging(false)}
-            >
+            <div className="grid">
               {grid.map((row, r) =>
                 row.map((cell, c) => {
                   const shipShape =
-                    cell === "ship" && puzzle
+                    cell === "ship"
                       ? getShipShape(r, c, puzzle.answerCells)
                       : "";
 
                   return (
                     <button
                       key={`${r}-${c}`}
+                      type="button"
                       className={`cell ${cell} ${shipShape}`}
-                      onClick={() => {
-                        if (inputMode === "cross") {
-                          crossOutCell(r, c);
-                        } else {
-                          handleLeftClick(r, c);
+                      onPointerDown={(event) => {
+                        // Desktop: left button places ships; right button
+                        // crosses cells out. Touch uses the selected mode.
+                        if (event.pointerType === "mouse") {
+                          if (event.button !== 0 && event.button !== 2) return;
                         }
-                      }}
-                      onMouseDown={(event) => {
-                        if (event.button === 2) {
-                          setIsDragging(true);
-                          crossOutCell(r, c);
-                        }
-                      }}
-                      onMouseEnter={() => {
-                        if (isDragging) {
-                          crossOutCell(r, c);
-                        }
-                      }}
-                      onContextMenu={(event) => {
+
                         event.preventDefault();
+
+                        const mode: InputMode =
+                          event.pointerType === "mouse"
+                            ? event.button === 2
+                              ? "cross"
+                              : "ship"
+                            : inputMode;
+
+                        isDraggingRef.current = true;
+                        dragModeRef.current = mode;
+                        dragButtonRef.current =
+                          event.pointerType === "mouse" ? event.button : null;
+                        lastDraggedCell.current = null;
+
+                        markCell(r, c);
                       }}
+                      onPointerEnter={(event) => {
+                        if (!isDraggingRef.current || !dragModeRef.current) {
+                          return;
+                        }
+
+                        // Only continue mouse dragging while its original
+                        // button is held. Touch uses pointer events directly.
+                        if (
+                          event.pointerType === "mouse" &&
+                          event.buttons !==
+                            (dragButtonRef.current === 2 ? 2 : 1)
+                        ) {
+                          return;
+                        }
+
+                        markCell(r, c);
+                      }}
+                      onContextMenu={(event) => event.preventDefault()}
                       aria-label={`Row ${r + 1}, column ${c + 1}`}
                     />
                   );
@@ -413,7 +491,7 @@ function Game() {
               }
               onClick={() => setInputMode("cross")}
             >
-              Cross Out
+              Mark Empty
             </button>
           </div>
 
