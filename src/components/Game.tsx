@@ -150,6 +150,21 @@ function Game() {
     }
   }
 
+  function handleGridPointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    if (!isDraggingRef.current) return;
+
+    const element = document.elementFromPoint(event.clientX, event.clientY);
+
+    const cell = element?.closest<HTMLButtonElement>("[data-row][data-col]");
+
+    if (!cell) return;
+
+    const row = Number(cell.dataset.row);
+    const col = Number(cell.dataset.col);
+
+    markCell(row, col);
+  }
+
   function stopDragging() {
     isDraggingRef.current = false;
     dragModeRef.current = null;
@@ -416,7 +431,7 @@ function Game() {
           </p>
 
           <div className="table" onContextMenu={(e) => e.preventDefault()}>
-            <div className="grid">
+            <div className="grid" onPointerMove={handleGridPointerMove}>
               {grid.map((row, r) =>
                 row.map((cell, c) => {
                   const shipShape =
@@ -426,6 +441,8 @@ function Game() {
 
                   return (
                     <button
+                      data-row={r}
+                      data-col={c}
                       key={`${r}-${c}`}
                       type="button"
                       className={`cell ${cell} ${shipShape}`}

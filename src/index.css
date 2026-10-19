@@ -150,6 +150,8 @@ button:disabled {
     background-color 0.12s ease,
     border-color 0.12s ease;
   touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
 
