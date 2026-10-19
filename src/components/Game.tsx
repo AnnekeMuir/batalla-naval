@@ -15,8 +15,8 @@ const puzzleFiles = import.meta.glob("../puzzles/*.txt", {
   import: "default",
 }) as Record<string, string>;
 
-type CellState = "blank" | "crossed" | "filled" | "blocked" | "ship";
-type InputMode = "ship" | "cross";
+type CellState = "blank" | "crossed" | "filled" | "blocked" | "ship" | "maybe";
+type InputMode = "ship" | "cross" | "maybe";
 
 const GRID_SIZE = 10;
 
@@ -143,9 +143,11 @@ function Game() {
 
     lastDraggedCell.current = cellKey;
 
-    if (mode === "cross") {
+    if (dragModeRef.current === "cross") {
       crossOutCell(row, col);
-    } else {
+    } else if (dragModeRef.current === "maybe") {
+      toggleMaybeCell(row, col);
+    } else if (dragModeRef.current === "ship") {
       handleLeftClick(row, col);
     }
   }
@@ -185,6 +187,19 @@ function Game() {
       window.removeEventListener("blur", stopDragging);
     };
   }, []);
+
+  function toggleMaybeCell(row: number, col: number) {
+    setGrid((prev) =>
+      prev.map((gridRow, r) =>
+        gridRow.map((cell, c) => {
+          if (r !== row || c !== col) return cell;
+          if (cell === "blocked" || cell === "ship") return cell;
+
+          return cell === "maybe" ? "blank" : "maybe";
+        }),
+      ),
+    );
+  }
 
   const loadPuzzleText = (text: string) => {
     const parsed = parsePuzzle(text);
@@ -529,6 +544,16 @@ function Game() {
               onClick={() => setInputMode("cross")}
             >
               Mark Empty
+            </button>
+
+            <button
+              type="button"
+              className={
+                inputMode === "maybe" ? "mode-button active" : "mode-button"
+              }
+              onClick={() => setInputMode("maybe")}
+            >
+              Plan
             </button>
           </div>
 
