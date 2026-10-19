@@ -256,6 +256,12 @@ function Game() {
   };
 
   const resetPuzzle = () => {
+    const isConfirmed: boolean = window.confirm(
+      "Are you sure you want to reset? This will clear all your progress.",
+    );
+
+    if (!isConfirmed) return;
+
     setGrid(
       Array.from({ length: GRID_SIZE }, (_, row) =>
         Array.from({ length: GRID_SIZE }, (_, col) => {
