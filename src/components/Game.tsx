@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Coordinate = [number, number];
 type Puzzle = {
@@ -159,15 +159,42 @@ function Game() {
     setMessage("");
   };
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const puzzleNumber = params.get("puzzle");
+
+    if (!puzzleNumber) return;
+
+    const entry = Object.entries(puzzleFiles).find(([path]) =>
+      path.endsWith(`/puzzle${puzzleNumber}.txt`),
+    );
+
+    if (entry) {
+      loadPuzzleText(entry[1]);
+    } else {
+      setMessage("Puzzle not found.");
+    }
+  }, []);
+
   const loadRandomPuzzle = () => {
-    const files = Object.values(puzzleFiles);
-    if (files.length === 0) {
-      alert("No preset puzzles found.");
+    const entries = Object.entries(puzzleFiles);
+
+    if (entries.length === 0) {
+      setMessage("No preset puzzles found.");
       return;
     }
 
-    const randomIndex = Math.floor(Math.random() * files.length);
-    loadPuzzleText(files[randomIndex]);
+    const [path, text] = entries[Math.floor(Math.random() * entries.length)];
+
+    loadPuzzleText(text);
+
+    const match = path.match(/puzzle(\d+)\.txt$/);
+
+    if (match) {
+      const url = new URL(window.location.href);
+      url.searchParams.set("puzzle", match[1]);
+      window.history.replaceState({}, "", url);
+    }
   };
 
   function crossOutCell(row: number, col: number) {

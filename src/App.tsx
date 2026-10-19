@@ -3,10 +3,11 @@ import "./App.css";
 import Game from "./components/Game.tsx";
 import PuzzleEditor from "./components/PuzzleEditor.tsx";
 
-type GameMode = "menu" | "game" | "editor";
-
 function App() {
-  const [mode, setMode] = useState<GameMode>("menu");
+  const [mode, setMode] = useState<"menu" | "game" | "editor">(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.has("puzzle") ? "game" : "menu";
+  });
 
   return (
     <main className="app">
