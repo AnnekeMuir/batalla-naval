@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import shipKey from "../assets/battleship-key.png";
 
 type Coordinate = [number, number];
 
@@ -82,6 +83,7 @@ function Game() {
   const [grid, setGrid] = useState<CellState[][]>([]);
   const [message, setMessage] = useState("");
   const [inputMode, setInputMode] = useState<InputMode>("ship");
+  const [imageError, setImageError] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -340,25 +342,43 @@ function Game() {
         <div className="how-to-play-content">
           <p>
             Fill in the grid to find all the hidden ships. The numbers along the
-            sides and top of the grid show how many ship squares belong in each
+            sides and top of the grid show how many ship pieces belong in each
             row and column.
           </p>
 
           <p>
             <strong>The fleet consists of 10 ships:</strong>
           </p>
-          <ul>
-            <li>1 ship that is 4 squares long: ⬛⬛⬛⬛</li>
-            <li>2 ships that are 3 squares long: ⬛⬛⬛, ⬛⬛⬛</li>
-            <li>3 ships that are 2 squares long: ⬛⬛, ⬛⬛, ⬛⬛</li>
-            <li>4 ships that are 1 square long: ⬛, ⬛, ⬛, ⬛</li>
-          </ul>
 
+          <div>
+            {imageError ? (
+              <ul>
+                <li>1 ship that is 4 squares long: ⬛⬛⬛⬛</li>
+                <li>2 ships that are 3 squares long: ⬛⬛⬛, ⬛⬛⬛</li>
+                <li>3 ships that are 2 squares long: ⬛⬛, ⬛⬛, ⬛⬛</li>
+                <li>4 ships that are 1 square long: ⬛, ⬛, ⬛, ⬛</li>
+              </ul>
+            ) : (
+              <img
+                src={shipKey}
+                alt="Ship key"
+                className="battleship-image"
+                onError={() => setImageError(true)}
+              />
+            )}
+          </div>
+          <p>
+            Beginning ship pieces have white dots. Circles are standalone ships.
+            A square is a middle part of a ship. A rounded edge is an end of a
+            ship. Use the orientation to help you find attached pieces.
+          </p>
           <p>
             <strong>
               Ships cannot touch each other, including diagonally.
             </strong>
           </p>
+
+          <p>Grey squares are blocked and cannot be changed.</p>
         </div>
       </details>
 

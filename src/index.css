@@ -392,3 +392,11 @@ button:disabled {
 .mode-button.active:hover {
   background: #244a76;
 }
+
+/* Image styling */
+.battleship-image {
+  display: block;
+  max-width: 50%;
+  height: auto;
+  margin-top: 10px;
+}
