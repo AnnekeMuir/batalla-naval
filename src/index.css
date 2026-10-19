@@ -376,7 +376,7 @@ button:disabled {
   display: none;
 }
 
-.desktop-instructions {
+.desktop-instructions, .desktop-plan {
   display: block;
 }
 
@@ -397,7 +397,7 @@ button:disabled {
     display: block;
   }
 
-  .desktop-instructions {
+  .desktop-instructions, .desktop-plan {
     display: none;
   }
 }

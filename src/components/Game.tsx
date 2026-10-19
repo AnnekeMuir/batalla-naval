@@ -398,17 +398,23 @@ function Game() {
             )}
           </div>
           <p>
-            Beginning ship pieces have white dots. Circles are standalone ships.
-            A square is a middle part of a ship. A rounded edge is an end of a
-            ship. Use the orientation to help you find attached pieces.
+            Revealed ship pieces have white dots. Circles represent standalone
+            ships. A square is a middle piece of a ship, while a rounded edge
+            marks an end. Use the orientation to help you find connected pieces.
           </p>
           <p>
             <strong>
               Ships cannot touch each other, including diagonally.
             </strong>
           </p>
-
           <p>Grey squares are blocked and cannot be changed.</p>
+          <p>
+            Plan mode lets you mark possible ship locations as you solve the
+            puzzle. These marks don't count towards your answer when submitting.
+          </p>
+          <p>
+            <em>Stuck? Try finding where the largest ship can fit.</em>
+          </p>
         </div>
       </details>
 
@@ -438,11 +444,12 @@ function Game() {
         <>
           <p className="desktop-instructions">
             Left-click to place ships, or right-click and drag to mark empty.
+            Toggle Plan to mark possible ship locations.
           </p>
 
           <p className="mobile-instructions">
-            Tap and drag to place ships or mark as empty. Use the buttons below
-            to switch between modes.
+            Tap and drag to mark cells. Use Place Ship, Mark Empty, and Plan
+            below to switch between modes. Plan marks possible ship locations.
           </p>
 
           <div className="table" onContextMenu={(e) => e.preventDefault()}>
@@ -462,26 +469,31 @@ function Game() {
                       type="button"
                       className={`cell ${cell} ${shipShape}`}
                       onPointerDown={(event) => {
-                        // Desktop: left button places ships; right button
-                        // crosses cells out. Touch uses the selected mode.
                         if (event.pointerType === "mouse") {
                           if (event.button !== 0 && event.button !== 2) return;
+
+                          // Right-click always marks empty.
+                          // Left-click respects the selected mode.
+                          dragModeRef.current =
+                            event.button === 2
+                              ? "cross"
+                              : inputMode === "maybe"
+                                ? "maybe"
+                                : "ship";
+                        } else {
+                          // Touch uses the selected mobile mode.
+                          dragModeRef.current = inputMode;
                         }
 
                         event.preventDefault();
 
-                        const mode: InputMode =
-                          event.pointerType === "mouse"
-                            ? event.button === 2
-                              ? "cross"
-                              : "ship"
-                            : inputMode;
-
                         isDraggingRef.current = true;
-                        dragModeRef.current = mode;
                         dragButtonRef.current =
                           event.pointerType === "mouse" ? event.button : null;
                         lastDraggedCell.current = null;
+
+                        console.log("Selected input mode:", inputMode);
+                        console.log("Locked drag mode:", dragModeRef.current);
 
                         markCell(r, c);
                       }}
@@ -554,6 +566,24 @@ function Game() {
               onClick={() => setInputMode("maybe")}
             >
               Plan
+            </button>
+          </div>
+
+          {/* Desktop control: Plan only */}
+          <div className="desktop-plan">
+            <button
+              type="button"
+              className={
+                inputMode === "maybe" ? "mode-button active" : "mode-button"
+              }
+              aria-pressed={inputMode === "maybe"}
+              onClick={() =>
+                setInputMode((current) =>
+                  current === "maybe" ? "ship" : "maybe",
+                )
+              }
+            >
+              {inputMode === "maybe" ? "Plan mode on" : "Plan mode off"}
             </button>
           </div>
 
