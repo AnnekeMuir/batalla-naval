@@ -316,6 +316,21 @@ function Game() {
     }
   };
 
+  // Shift key toggles Plan mode (desktop only)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Shift" && !event.repeat) {
+        setInputMode((prevMode) => (prevMode === "maybe" ? "ship" : "maybe"));
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
   function submit() {
     if (!puzzle) return;
 
@@ -467,7 +482,7 @@ function Game() {
         <>
           <p className="desktop-instructions">
             Left-click to place ships, or right-click and drag to mark empty.
-            Toggle Plan to mark possible ship or water locations.
+            Toggle Plan mode by pressing SHIFT.
           </p>
 
           <p className="mobile-instructions">
