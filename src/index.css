@@ -118,6 +118,22 @@ button:disabled {
   border-color: #1e40af;
 }
 
+.nav-button {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  color: #6b7280;
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.nav-button:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
 /* ---------- Puzzle layout ---------- */
 
 .table {
