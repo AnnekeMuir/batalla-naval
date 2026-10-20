@@ -282,7 +282,10 @@ function Game() {
     const params = new URLSearchParams(window.location.search);
     const puzzleNumber = params.get("puzzle");
 
-    if (!puzzleNumber) return;
+    if (!puzzleNumber) {
+      loadRandomPuzzle();
+      return;
+    }
 
     const entry = Object.entries(puzzleFiles).find(([path]) =>
       path.endsWith(`/puzzle${puzzleNumber}.txt`),
