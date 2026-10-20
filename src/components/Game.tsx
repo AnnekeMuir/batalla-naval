@@ -15,8 +15,15 @@ const puzzleFiles = import.meta.glob("../puzzles/*.txt", {
   import: "default",
 }) as Record<string, string>;
 
-type CellState = "blank" | "crossed" | "filled" | "blocked" | "ship" | "maybe";
-type InputMode = "ship" | "cross" | "maybe";
+type CellState =
+  | "blank"
+  | "crossed"
+  | "filled"
+  | "blocked"
+  | "ship"
+  | "maybe"
+  | "maybe-cross";
+type InputMode = "ship" | "cross" | "maybe" | "maybe-cross";
 
 const GRID_SIZE = 10;
 
@@ -147,6 +154,8 @@ function Game() {
       crossOutCell(row, col);
     } else if (dragModeRef.current === "maybe") {
       toggleMaybeCell(row, col);
+    } else if (dragModeRef.current === "maybe-cross") {
+      toggleMaybeCrossCell(row, col);
     } else if (dragModeRef.current === "ship") {
       handleLeftClick(row, col);
     }
@@ -196,6 +205,19 @@ function Game() {
           if (cell === "blocked" || cell === "ship") return cell;
 
           return cell === "maybe" ? "blank" : "maybe";
+        }),
+      ),
+    );
+  }
+
+  function toggleMaybeCrossCell(row: number, col: number) {
+    setGrid((prev) =>
+      prev.map((gridRow, r) =>
+        gridRow.map((cell, c) => {
+          if (r !== row || c !== col) return cell;
+          if (cell === "blocked" || cell === "ship") return cell;
+
+          return cell === "maybe-cross" ? "blank" : "maybe-cross";
         }),
       ),
     );
@@ -409,8 +431,9 @@ function Game() {
           </p>
           <p>Grey squares are blocked and cannot be changed.</p>
           <p>
-            Plan mode lets you mark possible ship locations as you solve the
-            puzzle. These marks don't count towards your answer when submitting.
+            Plan mode lets you mark possible ship or water locations you are
+            unsure about. These marks don't count towards your answer when
+            submitting.
           </p>
           <p>
             <em>Stuck? Try finding where the largest ship can fit.</em>
@@ -444,12 +467,12 @@ function Game() {
         <>
           <p className="desktop-instructions">
             Left-click to place ships, or right-click and drag to mark empty.
-            Toggle Plan to mark possible ship locations.
+            Toggle Plan to mark possible ship or water locations.
           </p>
 
           <p className="mobile-instructions">
-            Tap and drag to mark cells. Use Place Ship, Mark Empty, and Plan
-            below to switch between modes. Plan marks possible ship locations.
+            Tap and drag to mark cells. Use the buttons to switch between the
+            four modes below.
           </p>
 
           <div className="table" onContextMenu={(e) => e.preventDefault()}>
@@ -472,14 +495,16 @@ function Game() {
                         if (event.pointerType === "mouse") {
                           if (event.button !== 0 && event.button !== 2) return;
 
-                          // Right-click always marks empty.
-                          // Left-click respects the selected mode.
-                          dragModeRef.current =
-                            event.button === 2
-                              ? "cross"
-                              : inputMode === "maybe"
-                                ? "maybe"
-                                : "ship";
+                          // Lock the drag mode based on the selected input mode and mouse button.
+                          if (event.button === 2 && inputMode === "maybe") {
+                            dragModeRef.current = "maybe-cross";
+                          } else if (event.button === 2) {
+                            dragModeRef.current = "cross";
+                          } else if (inputMode === "maybe") {
+                            dragModeRef.current = "maybe";
+                          } else {
+                            dragModeRef.current = "ship";
+                          }
                         } else {
                           // Touch uses the selected mobile mode.
                           dragModeRef.current = inputMode;
@@ -491,9 +516,6 @@ function Game() {
                         dragButtonRef.current =
                           event.pointerType === "mouse" ? event.button : null;
                         lastDraggedCell.current = null;
-
-                        console.log("Selected input mode:", inputMode);
-                        console.log("Locked drag mode:", dragModeRef.current);
 
                         markCell(r, c);
                       }}
@@ -545,7 +567,7 @@ function Game() {
               }
               onClick={() => setInputMode("ship")}
             >
-              Place Ship
+              Place Ships
             </button>
 
             <button
@@ -565,7 +587,19 @@ function Game() {
               }
               onClick={() => setInputMode("maybe")}
             >
-              Plan
+              Plan Ships
+            </button>
+
+            <button
+              type="button"
+              className={
+                inputMode === "maybe-cross"
+                  ? "mode-button active"
+                  : "mode-button"
+              }
+              onClick={() => setInputMode("maybe-cross")}
+            >
+              Plan Empty
             </button>
           </div>
 

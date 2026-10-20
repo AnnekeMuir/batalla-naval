@@ -200,7 +200,7 @@ button:disabled {
   background: black;
 }
 
-.cell.maybe {
+.cell.maybe, .cell.maybe-cross {
   position: relative;
   background: white;
 }
@@ -218,6 +218,18 @@ button:disabled {
   pointer-events: none;
 }
 
+.cell.maybe-cross::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: lightblue;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
 /* ---------- Ship shapes ---------- */
 
 .cell.horizontal-left {
@@ -388,10 +400,16 @@ button:disabled {
 @media (max-width: 600px) {
   .input-modes {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     gap: 8px;
     width: 100%;
     padding: 0 12px;
+    box-sizing: border-box;
+  }
+
+  .input-modes button {
+    width: calc(50% - 4px);
     box-sizing: border-box;
   }
 
