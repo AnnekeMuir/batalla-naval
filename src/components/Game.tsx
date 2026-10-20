@@ -636,15 +636,15 @@ function Game() {
             </button>
           </div>
 
-          <button type="button" className="reset-button" onClick={resetPuzzle}>
-            Reset Puzzle
-          </button>
-
           <button className="submit-button" onClick={submit}>
             Submit
           </button>
 
           {message && <p>{message}</p>}
+
+          <button type="button" className="reset-button" onClick={resetPuzzle}>
+            Reset Puzzle
+          </button>
         </>
       )}
     </>

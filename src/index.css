@@ -94,12 +94,20 @@ button:disabled {
   width: 100%;
 }
 
-.reset-button,
-.submit-button {
+.reset-button {
   min-width: 110px;
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+}
+
+.reset-button:hover {
+  background: #b91c1c;
+  border-color: #b91c1c;
 }
 
 .submit-button {
+  min-width: 110px;
   background: #1d4ed8;
   border-color: #1d4ed8;
   color: #ffffff;
